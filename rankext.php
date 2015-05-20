@@ -15,7 +15,7 @@ function rankext_info() {
     return array(
         'name' => 'RankExt',
         'description' => 'Adds internal ranks to user groups within MyBB.',
-        'website' => 'Github Link!',
+        'website' => 'https://github.com/megan-starr9/RankExt',
         'author' => 'Megan Lyle',
         'authorsite' => 'http://megstarr.com',
         'version' => '1.0.0',
