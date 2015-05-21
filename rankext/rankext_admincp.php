@@ -196,7 +196,8 @@ function rankext_group_editform() {
 		$rankext_groupsettings= array(
 				$form->generate_check_box("rankext_hasranks", 1, "Group has internal rank system", array("checked" => $usergroup['rankext_hasranks'])),
 				"<b>Primary Color:</b> ".$form->generate_text_box("rankext_primarycolor", $usergroup['rankext_primarycolor'], "Primary color for group rank display"),
-				"<b>Secondary Color:</b> ".$form->generate_text_box("rankext_secondarycolor", $usergroup['rankext_secondarycolor'], "Secondary color for group rank display")
+				"<b>Secondary Color:</b> ".$form->generate_text_box("rankext_secondarycolor", $usergroup['rankext_secondarycolor'], "Secondary color for group rank display"),
+				"<b>Banner Url:</b> ".$form->generate_text_box("rankext_bannerurl", $usergroup['rankext_bannerurl'], "Url of group's banner image")
 		);
 		$form_container->output_row("RankExt Settings", "", "<div class=\"forum_settings_bit\">".implode("</div><div class=\"forum_settings_bit\">", $rankext_groupsettings)."</div>");
 	}
@@ -213,6 +214,7 @@ function rankext_group_commit()
 			$updated_group['rankext_hasranks'] = (int)$mybb->input['rankext_hasranks'];
 			$updated_group['rankext_primarycolor'] = $db->escape_string($mybb->input['rankext_primarycolor']);
 			$updated_group['rankext_secondarycolor'] = $db->escape_string($mybb->input['rankext_secondarycolor']);
+			$updated_group['rankext_bannerurl'] = $db->escape_string($mybb->input['rankext_bannerurl']);
 }
 
 /**

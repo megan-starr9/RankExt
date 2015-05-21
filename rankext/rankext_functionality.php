@@ -31,7 +31,7 @@ function build_ranklist() {
 		} else {
 			$gid = $mybb->user['displaygroup'];
 		}
-		$groupfields = 'gid, title, rankext_hasranks, rankext_primarycolor, rankext_secondarycolor';
+		$groupfields = 'gid, title, rankext_hasranks, rankext_primarycolor, rankext_secondarycolor, rankext_bannerurl';
 		$userfields = 'uid, username, displaygroup, rankext_rank';
 		$tierfields = '*';
 		$rankfields = '*';
@@ -82,7 +82,9 @@ function build_ranklist() {
 // If group has ranks, build the display with templates
 function display_group($group) {
 	global $mybb, $templates, $header, $footer, $headerinclude, $title, $forums,
-			$ranklist_fullview, $ranklist, $tierlist, $userlist, $unrankedlist, $unrankeduserlist;
+			$ranklist_fullview, $ranklist, $tierlist, $userlist, $unrankedlist, $unrankeduserlist, $bannerimg;
+
+		$bannerimg = (empty($group['rankext_bannerurl']) || !$mybb->user['showimages']) ? '' : '<img src="'.$group['rankext_bannerurl'].'">';
 
 	// Build out the templates!
 	foreach($group['tiers'] as $tier) {
