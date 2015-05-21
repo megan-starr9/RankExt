@@ -14,6 +14,9 @@ function rankext_install() {
 	if ($db->field_exists("rankext_rank", "users")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."users` DROP COLUMN `rankext_rank`");
 	}
+  if ($db->field_exists("rankext_ranktext", "users")) {
+		$db->write_query("ALTER TABLE `".TABLE_PREFIX."users` DROP COLUMN `rankext_ranktext`");
+	}
   if ($db->field_exists("rankext_hasranks", "usergroups")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_hasranks`");
 	}
@@ -30,13 +33,14 @@ function rankext_install() {
 		$db->write_query("DROP TABLE `".TABLE_PREFIX."rankext_tiers`");
 	}
 	$db->write_query("ALTER TABLE `".TABLE_PREFIX."users` ADD COLUMN `rankext_rank` INT(11) NOT NULL DEFAULT '0'");
+  $db->write_query("ALTER TABLE `".TABLE_PREFIX."users` ADD COLUMN `rankext_ranktext` VARCHAR(100) NOT NULL DEFAULT ''");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_hasranks` INT(1) NOT NULL DEFAULT '1'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_primarycolor` VARCHAR(7) NOT NULL DEFAULT '#a0a0a0'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_secondarycolor` VARCHAR(7) NOT NULL DEFAULT '#808080'");
 	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_ranks` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', tierid int(11) NOT NULL DEFAULT '0', label varchar(200), visible int(1) NOT NULL DEFAULT '1', PRIMARY KEY(id))");
 	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_tiers` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', label varchar(200), PRIMARY KEY(id))");
 
-	// Create Settings 
+	// Create Settings
 	$rankext_group = array(
 			'gid'    => 'NULL',
 			'name'  => 'rankext',
@@ -76,6 +80,16 @@ function rankext_install() {
           'description'    => 'The placeholder for empty but visible ranks',
           'optionscode'    => 'text',
           'value'        => '&mdash;',
+          'disporder'        => 1,
+          'gid'            => intval($gid),
+      );
+  $rankext_settings[2] = array(
+          'sid'            => 'NULL',
+          'name'        => 'rankext_groupswithoutranks',
+          'title'            => 'Groups without Ranks',
+          'description'    => 'Ids of groups without ranks, overrides yes on group settings (comma separated).',
+          'optionscode'    => 'text',
+          'value'        => '',
           'disporder'        => 1,
           'gid'            => intval($gid),
       );
@@ -249,6 +263,9 @@ function rankext_uninstall() {
 	if ($db->field_exists("rankext_rank", "users")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."users` DROP COLUMN `rankext_rank`");
 	}
+  if ($db->field_exists("rankext_ranktext", "users")) {
+    $db->write_query("ALTER TABLE `".TABLE_PREFIX."users` DROP COLUMN `rankext_ranktext`");
+  }
   if ($db->field_exists("rankext_hasranks", "usergroups")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_hasranks`");
 	}
@@ -266,7 +283,7 @@ function rankext_uninstall() {
 	}
 
 	// Delete settings
-	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name IN ('rankext_overflowrank','rankext_delimiter', 'rankext_placeholder')");
+	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name LIKE 'rankext_%'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settinggroups WHERE name='rankext'");
 	rebuild_settings();
 }

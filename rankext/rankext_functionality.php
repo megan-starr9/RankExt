@@ -38,7 +38,8 @@ function build_ranklist() {
 		$query = $db->simple_select('usergroups', $groupfields, 'gid = '.$gid);
 		$group = $query->fetch_assoc();
 
-		if(isset($group['rankext_hasranks']) && $group['rankext_hasranks']) {
+		$groupswithoutranks = explode(",", $mybb->settings['rankext_groupswithoutranks']);
+		if(isset($group['rankext_hasranks']) && ($group['rankext_hasranks'] && !in_array($gid, $groupswithoutranks))) {
 			// Now build out group object
 			$query = $db->simple_select('rankext_tiers', $tierfields, 'true', array(
 				"order_by" => 'seq',
@@ -150,9 +151,18 @@ function rankext_mod_editform() {
 *
 */
 function rankext_mod_saveinfo() {
-	global $mybb, $extra_user_updates;
+	global $mybb, $extra_user_updates, $db;
+			// Get rank text also for display purposes
+			$rankid = (int)$mybb->input['rankext_rank'];
+			$query = $db->simple_select('rankext_ranks', 'label', 'id = "'.$rankid.'"');
+			$rankinfo = $query->fetch_assoc();
 
-	$extra_user_updates['rankext_rank'] = (int)$mybb->input['rankext_rank'];
+			$extra_user_updates['rankext_rank'] = $rankid;
+			if(isset($rankinfo['label'])) {
+				$extra_user_updates['rankext_ranktext'] = $rankinfo['label'];
+			} else {
+				$extra_user_updates['rankext_ranktext'] = '';
+			}
 }
 
 /**

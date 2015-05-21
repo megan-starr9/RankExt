@@ -259,7 +259,16 @@ function rankext_user_editform() {
  */
 function rankext_user_commit()
 {
-	global $mybb, $extra_user_updates;
+	global $mybb, $extra_user_updates, $db;
+			// Get rank text also for display purposes
+			$rankid = (int)$mybb->input['rankext_rank'];
+			$query = $db->simple_select('rankext_ranks', 'label', 'id = "'.$rankid.'"');
+			$rankinfo = $query->fetch_assoc();
 
-			$extra_user_updates['rankext_rank'] = (int)$mybb->input['rankext_rank'];
+			$extra_user_updates['rankext_rank'] = $rankid;
+			if(isset($rankinfo['label'])) {
+				$extra_user_updates['rankext_ranktext'] = $rankinfo['label'];
+			} else {
+				$extra_user_updates['rankext_ranktext'] = '';
+			}
 }
