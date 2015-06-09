@@ -60,7 +60,6 @@ function build_ranklist() {
 			    "order_dir" => 'ASC'));
 				$ranks = array();
 				while ($rank = $query2->fetch_assoc()) {
-					echo "Rank";
 					$query3 = $db->simple_select('users', $userfields, 'rankext_rank = "'.$rank['id'].'" AND (displaygroup = "'.$group['gid'].'"
 										OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0"))');
 					$users = array();
