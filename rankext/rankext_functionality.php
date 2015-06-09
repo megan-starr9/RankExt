@@ -60,11 +60,12 @@ function build_ranklist() {
 			    "order_dir" => 'ASC'));
 				$ranks = array();
 				while ($rank = $query2->fetch_assoc()) {
-					$query3 = $db->simple_select('users', $userfields, 'rankext_rank = "'.$rank['id'].'" AND (displaygroup = "'.$group['gid'].'"
+					$query3 = $db->query('SELECT '.$userfields.' FROM '.TABLE_PREFIX.'users INNER JOIN '.TABLE_PREFIX.'userfields
+										ON uid = ufid WHERE rankext_rank = "'.$rank['id'].'" AND (displaygroup = "'.$group['gid'].'"
 										OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0"))');
 					$users = array();
 					while ($member = $query3->fetch_assoc()) {
-							$users[] = $member;
+						$users[] = $member;
 					}
 					if($rank['split_dups']) {
 						foreach($users as $user) {
