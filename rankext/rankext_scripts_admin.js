@@ -1,4 +1,5 @@
 $(document).on('click','#create_tier', function() {
+  console.log("HERE");
   $.ajax({
     url: "../xmlhttp.php",
     data: {

@@ -41,7 +41,7 @@ function rankext_install() {
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_primarycolor` VARCHAR(7) NOT NULL DEFAULT '#a0a0a0'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_secondarycolor` VARCHAR(7) NOT NULL DEFAULT '#808080'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_bannerurl` VARCHAR(100) NOT NULL DEFAULT ''");
-	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_ranks` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', tierid int(11) NOT NULL DEFAULT '0', label varchar(200), visible int(1) NOT NULL DEFAULT '1', PRIMARY KEY(id))");
+	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_ranks` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', tierid int(11) NOT NULL DEFAULT '0', label varchar(200), visible int(1) NOT NULL DEFAULT '1', split_dups int(1) NOT NULL DEFAULT '1', dups int(11) NOT NULL DEFAULT '1', PRIMARY KEY(id))");
 	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_tiers` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', label varchar(200), PRIMARY KEY(id))");
 
 	// Create Settings

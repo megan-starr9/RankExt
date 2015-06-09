@@ -61,7 +61,7 @@ function rankext_add_ranks_and_tiers() {
 	$tierform = '<table><tr><td>Delete?</td><td>Order</td><td>Label</td></tr>';
 	foreach($tiers as $tier) {
 		$tierform .= "<tr><td>".$form->generate_check_box("delete_tier[]", $tier['id'], '', array('checked' => false))."</td>"
-				."<td>".$form->generate_text_box("tier_seq".$tier['id'], $tier['seq'])."</td>"
+				."<td>".$form->generate_text_box("tier_seq".$tier['id'], $tier['seq'], array('style' => 'width:30px'))."</td>"
 				."<td>".$form->generate_text_box("tier_label".$tier['id'], $tier['label'])." </td></tr>";
 	}
 	$tierform .= "</table><button type='button' id='create_tier'>Create New Tier</button> <i>(Save first!)</i>";
@@ -75,13 +75,15 @@ function rankext_add_ranks_and_tiers() {
 	while($rank = $query->fetch_assoc()) {
 		$ranks[] = $rank;
 	}
-	$rankform = '<table><tr><td>Delete?</td><td>Order</td><td>Tier</td><td>Label</td><td>Always Visible?</td></tr>';
+	$rankform = '<table><tr><td>Delete?</td><td>Order</td><td>Tier</td><td>Label</td><td>Always Visible?</td><td>Split Duplicates?</td><td>If splitting, # to show on always visible</td></tr>';
 	foreach($ranks as $rank) {
 		$rankform .= "<tr><td>".$form->generate_check_box("delete_rank[]", $rank['id'], '', array('checked' => false))."</td>"
-				."<td>".$form->generate_text_box("rank_seq".$rank['id'], $rank['seq'])."</td>"
+				."<td>".$form->generate_text_box("rank_seq".$rank['id'], $rank['seq'], array('style' => 'width:30px'))."</td>"
 				."<td>".$form->generate_select_box("rank_tier".$rank['id'], $ranktieropts, $rank['tierid'])."</td>"
 				."<td>".$form->generate_text_box("rank_label".$rank['id'], $rank['label'])." </td>"
-				."<td>".$form->generate_check_box("rank_visible".$rank['id'], 1, '', array('checked' => $rank['visible']))."</td></tr>";
+				."<td>".$form->generate_check_box("rank_visible".$rank['id'], 1, '', array('checked' => $rank['visible']))."</td>"
+				."<td>".$form->generate_check_box("rank_split_dups".$rank['id'], 1, '', array('checked' => $rank['split_dups']))."</td>"
+				."<td>".$form->generate_text_box("rank_dups".$rank['id'], $rank['dups'], array('style' => 'width:30px'))."</td></tr>";
 	}
 	$rankform .= "</table><button type='button' id='create_rank'>Create New Rank</button> <i>(Save first!)</i>";
 	$form_container->output_row("", "", $rankform);
@@ -161,7 +163,9 @@ function rankext_custom_settings_commit() {
 					'label' => $db->escape_string($mybb->input['rank_label'.$rank['id']]),
 					'seq' => (int)$mybb->input['rank_seq'.$rank['id']],
 					'tierid' => (int)$mybb->input['rank_tier'.$rank['id']],
-					'visible' => (int)$mybb->input['rank_visible'.$rank['id']]
+					'visible' => (int)$mybb->input['rank_visible'.$rank['id']],
+					'split_dups' => (int)$mybb->input['rank_split_dups'.$rank['id']],
+					'dups' => (int)$mybb->input['rank_dups'.$rank['id']]
 			);
 			$db->update_query("rankext_ranks", $rank_array, 'id='.$rank['id']);
 		}

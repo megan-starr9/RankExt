@@ -31,8 +31,17 @@ function build_ranklist() {
 		} else {
 			$gid = $mybb->user['displaygroup'];
 		}
+
+		$leaderids = array();
+		// Just in case someone wants to do something with leaders vs non-leaders?
+		$lquery = $db->simple_select("groupleaders", "*", 'gid='.$gid);
+		while ($leader = $db->fetch_array($lquery))
+		{
+			$leaderids[] = $leader['uid'];
+		}
+
 		$groupfields = 'gid, title, rankext_hasranks, rankext_primarycolor, rankext_secondarycolor, rankext_bannerurl';
-		$userfields = 'uid, username, displaygroup, rankext_rank';
+		$userfields = '*';
 		$tierfields = '*';
 		$rankfields = '*';
 		$query = $db->simple_select('usergroups', $groupfields, 'gid = '.$gid);
@@ -51,14 +60,26 @@ function build_ranklist() {
 			    "order_dir" => 'ASC'));
 				$ranks = array();
 				while ($rank = $query2->fetch_assoc()) {
+					echo "Rank";
 					$query3 = $db->simple_select('users', $userfields, 'rankext_rank = "'.$rank['id'].'" AND (displaygroup = "'.$group['gid'].'"
 										OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0"))');
 					$users = array();
 					while ($member = $query3->fetch_assoc()) {
-						$users[] = $member;
+							$users[] = $member;
 					}
-					$rank['users'] = $users;
-					$ranks[] = $rank;
+					if($rank['split_dups']) {
+						foreach($users as $user) {
+							$rank['users'] = array($user);
+							$ranks[] = $rank;
+						}
+						for($i = 0; $i<$rank['dups'] - sizeof($users); $i++) {
+							$rank['users'] = array();
+							$ranks[] = $rank;
+						}
+					} else {
+						$rank['users'] = $users;
+						$ranks[] = $rank;
+					}
 				}
 				$tier['ranks'] = $ranks;
 				$tiers[] = $tier;
