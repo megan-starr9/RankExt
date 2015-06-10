@@ -100,6 +100,7 @@ function build_ranklist() {
 					$ranks = $tierranks[$tier['id']];
 				}
 
+				$tierranks = array();
 				foreach ($ranks as $rank) {
 					// Set users for rank
 					$users = array();
@@ -110,16 +111,19 @@ function build_ranklist() {
 					if($rank['split_dups']) {
 						foreach($users as $user) {
 							$rank['users'] = array($user);
+							$tierranks[] = $rank;
 						}
 						// Fill in all wanted empty duplicates
 						for($i = 0; $i<$rank['dups'] - sizeof($users); $i++) {
 							$rank['users'] = array();
+							$tierranks[] = $rank;
 						}
 					} else {
 						$rank['users'] = $users;
+						$tierranks[] = $rank;
 					}
 				}
-				$tier['ranks'] = $ranks;
+				$tier['ranks'] = $tierranks;
 				$tiers[] = $tier;
 			}
 			$group['tiers'] = $tiers;
