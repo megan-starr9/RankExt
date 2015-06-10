@@ -29,6 +29,9 @@ function rankext_install() {
   if ($db->field_exists("rankext_bannerurl", "usergroups")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_bannerurl`");
 	}
+  if ($db->field_exists("rankext_groupfid", "usergroups")) {
+		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_groupfid`");
+	}
 	if ($db->table_exists("rankext_ranks")) {
 		$db->write_query("DROP TABLE `".TABLE_PREFIX."rankext_ranks`");
 	}
@@ -41,6 +44,7 @@ function rankext_install() {
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_primarycolor` VARCHAR(7) NOT NULL DEFAULT '#a0a0a0'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_secondarycolor` VARCHAR(7) NOT NULL DEFAULT '#808080'");
   $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_bannerurl` VARCHAR(100) NOT NULL DEFAULT ''");
+  $db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` ADD COLUMN `rankext_groupfid` INT(11) NOT NULL DEFAULT '0'");
 	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_ranks` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', tierid int(11) NOT NULL DEFAULT '0', label varchar(200), visible int(1) NOT NULL DEFAULT '1', split_dups int(1) NOT NULL DEFAULT '1', dups int(11) NOT NULL DEFAULT '1', PRIMARY KEY(id))");
 	$db->write_query("CREATE TABLE `".TABLE_PREFIX."rankext_tiers` (id int(11) NOT NULL AUTO_INCREMENT, seq int(11) NOT NULL DEFAULT '0', label varchar(200), PRIMARY KEY(id))");
 
@@ -115,7 +119,11 @@ function rankext_install() {
 	// Add the new templates
 	$rankext_templates[0] = array(
 			"title" 	=> "rankext_rankpage_full",
-			"template"	=> $db->escape_string('<style>
+			"template"	=> $db->escape_string('<html>
+	      <head>
+	        <title>{$title}</title>
+	        {$headerinclude}
+          <style>
               .bannerdiv {
                 width: 90%;
                 margin:auto;
@@ -157,13 +165,19 @@ function rankext_install() {
                 font-weight:bold;
               }
             </style>
+          </head>
+	         <body>
+	          {$header}
             <h2>{$group[\'title\']} Ranks</h2>
               <div class="bannerdiv">{$bannerimg}</div>
 							<table class="ranktable">
 								{$tierlist}
                 {$unrankedlist}
 							</table>
-              <br><br>'),
+              <br><br>
+              {$footer}
+	          </body>
+          </html>'),
 			"sid"		=> -2,
 			"version"	=> 1.0,
 			"dateline"	=> TIME_NOW
@@ -215,9 +229,19 @@ function rankext_install() {
   $rankext_templates[6] = array(
 			"title" 	=> "rankext_rankpage_noranks",
 			"template"	=> $db->escape_string('
+      <html>
+      	<head>
+      	<title>{$title}</title>
+      	{$headerinclude}
+      	</head>
+      	<body>
+      	   {$header}
             <h2>{$group[\'title\']} Ranks</h2>
 							<p>This group has no ranks.</p>
-              <br><br>'),
+              <br><br>
+              {$footer}
+	          </body>
+          </html>'),
 			"sid"		=> -2,
 			"version"	=> 1.0,
 			"dateline"	=> TIME_NOW
@@ -288,6 +312,9 @@ function rankext_uninstall() {
 	}
   if ($db->field_exists("rankext_bannerurl", "usergroups")) {
 		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_bannerurl`");
+	}
+  if ($db->field_exists("rankext_groupfid", "usergroups")) {
+		$db->write_query("ALTER TABLE `".TABLE_PREFIX."usergroups` DROP COLUMN `rankext_groupfid`");
 	}
 	if ($db->table_exists("rankext_tiers")) {
 		$db->write_query("DROP TABLE `".TABLE_PREFIX."rankext_tiers`");

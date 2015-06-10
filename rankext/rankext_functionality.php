@@ -19,11 +19,9 @@ if(!defined("IN_MYBB"))
 $plugins->add_hook('index_end', 'build_ranklist');
 
 function build_ranklist() {
-	global $mybb, $db, $templates, $header, $footer, $headerinclude, $title, $forums;
+	global $mybb, $db, $templates, $header, $footer, $headerinclude, $title;
 
 	if($mybb->input['action'] == "showranks") {
-		$forums = '';
-		$title = $group['title']." Ranks";
 
 		// Get group id
 		if($mybb->input['gid'] != '') {
@@ -31,6 +29,15 @@ function build_ranklist() {
 		} else {
 			$gid = $mybb->user['displaygroup'];
 		}
+
+		$groupfields = 'gid, title, rankext_hasranks, rankext_primarycolor, rankext_secondarycolor, rankext_bannerurl, rankext_groupfid';
+		$userfields = '*';
+		$tierfields = '*';
+		$rankfields = '*';
+		$query = $db->simple_select('usergroups', $groupfields, 'gid = '.$gid);
+		$group = $query->fetch_assoc();
+
+		$title = $group['title']." Ranks";
 
 		$leaderids = array();
 		// Just in case someone wants to do something with leaders vs non-leaders?
@@ -40,32 +47,52 @@ function build_ranklist() {
 			$leaderids[] = $leader['uid'];
 		}
 
-		$groupfields = 'gid, title, rankext_hasranks, rankext_primarycolor, rankext_secondarycolor, rankext_bannerurl';
-		$userfields = '*';
-		$tierfields = '*';
-		$rankfields = '*';
-		$query = $db->simple_select('usergroups', $groupfields, 'gid = '.$gid);
-		$group = $query->fetch_assoc();
-
+		// Check if group is set to use ranks
 		$groupswithoutranks = explode(",", $mybb->settings['rankext_groupswithoutranks']);
 		if(isset($group['rankext_hasranks']) && ($group['rankext_hasranks'] && !in_array($gid, $groupswithoutranks))) {
+
+			if($group['rankext_groupfid']) {
+				add_breadcrumb($group['title'].' Forum', 'forumdisplay.php?fid='.(int)$group['rankext_groupfid']);
+			}
+			add_breadcrumb($group['title']." Ranks");
+
+			// Get all the users, put them in an array with rank as key
+			$rankusers = array();
+			$countedposttable = 'SELECT p.uid, MAX(p.dateline) AS recentpost FROM '.TABLE_PREFIX.'posts p
+								INNER JOIN '.TABLE_PREFIX.'forums f ON p.fid = f.fid
+								WHERE f.usepostcounts = 1
+								GROUP BY p.uid';
+			$userquery = $db->query('SELECT '.$userfields.', d.recentpost AS lasticpost FROM '.TABLE_PREFIX.'users u
+								INNER JOIN '.TABLE_PREFIX.'userfields ON uid = ufid
+								LEFT JOIN ('.$countedposttable.') d ON d.uid = u.uid
+								WHERE displaygroup = "'.$group['gid'].'"
+											OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0")');
+			while ($member = $userquery->fetch_assoc()) {
+				$member['isleader'] = in_array($member['uid'], $leaderids);
+				if(is_array($rankusers[$member['rankext_rank']])) {
+					$rankusers[$member['rankext_rank']][] = $member;
+				} else {
+					$rankusers[$member['rankext_rank']] = array($member);
+				}
+			}
+
 			// Now build out group object
-			$query = $db->simple_select('rankext_tiers', $tierfields, 'true', array(
+			$tierquery = $db->simple_select('rankext_tiers', $tierfields, 'true', array(
 				"order_by" => 'seq',
 		    "order_dir" => 'ASC'));
 			$tiers = array();
-			while ($tier = $query->fetch_assoc()) {
-				$query2 = $db->simple_select('rankext_ranks', $rankfields, 'tierid = '.$tier['id'], array(
+			while ($tier = $tierquery->fetch_assoc()) {
+				$rankquery = $db->simple_select('rankext_ranks', $rankfields, 'tierid = '.$tier['id'], array(
 					"order_by" => 'seq',
 			    "order_dir" => 'ASC'));
 				$ranks = array();
-				while ($rank = $query2->fetch_assoc()) {
-					$query3 = $db->query('SELECT '.$userfields.' FROM '.TABLE_PREFIX.'users INNER JOIN '.TABLE_PREFIX.'userfields
-										ON uid = ufid WHERE rankext_rank = "'.$rank['id'].'" AND (displaygroup = "'.$group['gid'].'"
-										OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0"))');
-					$users = array();
-					while ($member = $query3->fetch_assoc()) {
-						$users[] = $member;
+				while ($rank = $rankquery->fetch_assoc()) {
+
+					// Set users for rank, splitting out multiples if set to do so
+					if(is_array($rankusers[$rank['id']])) {
+						$users = $rankusers[$rank['id']];
+					} else {
+						$users = array();
 					}
 					if($rank['split_dups']) {
 						foreach($users as $user) {
@@ -87,16 +114,14 @@ function build_ranklist() {
 			$group['tiers'] = $tiers;
 
 			// Now get ungrouped Members
-			$query = $db->simple_select('users', $userfields, 'rankext_rank = "0" AND (displaygroup = "'.$group['gid'].'"
-								OR (usergroup = "'.$group['gid'].'" AND displaygroup = "0"))');
-			while($member = $query->fetch_assoc()) {
-				$group['unrankedmembers'][] = $member;
-			}
+			$group['unrankedmembers'] = $rankusers[0];
 
-			return display_group($group);
+			display_group($group);
+			exit;
 		}
-
-		return eval("\$forums = \"".$templates->get('rankext_rankpage_noranks')."\";");
+		eval("\$rankpage = \"".$templates->get('rankext_rankpage_noranks')."\";");
+		output_page($rankpage);
+		exit;
 	}
 }
 
@@ -140,7 +165,8 @@ function display_group($group) {
 		eval("\$unrankedlist = \"".$templates->get('rankext_unrankedtitle')."\";");
 	}
 
-	return eval("\$forums = \"".$templates->get('rankext_rankpage_full')."\";");
+	eval("\$rankpage = \"".$templates->get('rankext_rankpage_full')."\";");
+	return output_page($rankpage);
 }
 
 /**
