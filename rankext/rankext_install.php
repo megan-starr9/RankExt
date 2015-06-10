@@ -91,7 +91,7 @@ function rankext_install() {
           'disporder'        => 1,
           'gid'            => intval($gid),
       );
-  $rankext_settings[2] = array(
+  $rankext_settings[3] = array(
           'sid'            => 'NULL',
           'name'        => 'rankext_groupswithoutranks',
           'title'            => 'Groups without Ranks',
