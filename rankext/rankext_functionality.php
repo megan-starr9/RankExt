@@ -76,36 +76,47 @@ function build_ranklist() {
 				}
 			}
 
+			// Get all ranks, put them in array with tier as key
+			$tierranks = array();
+			$rankquery = $db->simple_select('rankext_ranks', $rankfields, true, array(
+				"order_by" => 'seq',
+				"order_dir" => 'ASC'));
+			while ($rank = $rankquery->fetch_assoc()) {
+				if(is_array($tierranks[$rank['tierid']])) {
+					$tierranks[$rank['tierid']][] = $rank;
+				} else {
+					$tierranks[$rank['tierid']] = array($rank);
+				}
+			}
+
 			// Now build out group object
 			$tierquery = $db->simple_select('rankext_tiers', $tierfields, 'true', array(
 				"order_by" => 'seq',
 		    "order_dir" => 'ASC'));
 			$tiers = array();
 			while ($tier = $tierquery->fetch_assoc()) {
-				$rankquery = $db->simple_select('rankext_ranks', $rankfields, 'tierid = '.$tier['id'], array(
-					"order_by" => 'seq',
-			    "order_dir" => 'ASC'));
 				$ranks = array();
-				while ($rank = $rankquery->fetch_assoc()) {
+				if(is_array($tierranks[$tier['id']])) {
+					$ranks = $tierranks[$tier['id']];
+				}
 
-					// Set users for rank, splitting out multiples if set to do so
+				foreach ($ranks as $rank) {
+					// Set users for rank
+					$users = array();
 					if(is_array($rankusers[$rank['id']])) {
 						$users = $rankusers[$rank['id']];
-					} else {
-						$users = array();
 					}
+					// Split out duplicates if desired
 					if($rank['split_dups']) {
 						foreach($users as $user) {
 							$rank['users'] = array($user);
-							$ranks[] = $rank;
 						}
+						// Fill in all wanted empty duplicates
 						for($i = 0; $i<$rank['dups'] - sizeof($users); $i++) {
 							$rank['users'] = array();
-							$ranks[] = $rank;
 						}
 					} else {
 						$rank['users'] = $users;
-						$ranks[] = $rank;
 					}
 				}
 				$tier['ranks'] = $ranks;
