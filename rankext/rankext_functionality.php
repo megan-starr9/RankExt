@@ -21,11 +21,15 @@ function update_location(&$plugin_array) {
 	global $db;
 	parse_str(parse_url($plugin_array['user_activity']['location'],  PHP_URL_QUERY), $urlarr);
 
-	$query = $db->simple_select('usergroups', 'title', 'gid="'.$urlarr['amp;gid'].'"');
-	$groupname = $query->fetch_assoc()['title'];
-
 	if($urlarr['action'] == 'showranks') {
-		$plugin_array['location_name'] = "Viewing <a href='".$plugin_array['user_activity']['location']."'>".$groupname." Ranks</a>"	;
+		$query = $db->simple_select('usergroups', 'title', 'gid="'.$urlarr['amp;gid'].'"');
+		$groupname = $query->fetch_assoc()['title'];
+
+		if($groupname) {
+			$plugin_array['location_name'] = "Viewing <a href='".$plugin_array['user_activity']['location']."'>".$groupname." Ranks</a>"	;
+		} else {
+			$plugin_array['location_name'] = "Viewing Invalid Group Ranks";
+		}
 	}
 }
 
