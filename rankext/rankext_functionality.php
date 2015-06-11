@@ -12,6 +12,24 @@ if(!defined("IN_MYBB"))
 }
 
 /**
+* Add special location to online list
+*
+*/
+$plugins->add_hook('build_friendly_wol_location_end', 'update_location');
+
+function update_location(&$plugin_array) {
+	global $db;
+	parse_str(parse_url($plugin_array['user_activity']['location'],  PHP_URL_QUERY), $urlarr);
+
+	$query = $db->simple_select('usergroups', 'title', 'gid="'.$urlarr['amp;gid'].'"');
+	$groupname = $query->fetch_assoc()['title'];
+
+	if($urlarr['action'] == 'showranks') {
+		$plugin_array['location_name'] = "Viewing <a href='".$plugin_array['user_activity']['location']."'>".$groupname." Ranks</a>"	;
+	}
+}
+
+/**
 * Build Ranklist View
 * (Replaces forum list on index page)
 *
